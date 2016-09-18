@@ -34,7 +34,8 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "async_icicle-dev"
+            "dev-master": "1.2.x-dev",
+
         }
     }
 }
