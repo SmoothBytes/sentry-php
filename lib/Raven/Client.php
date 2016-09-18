@@ -861,6 +861,48 @@ class Raven_Client
     }
 
     /**
+     * Send data to Sentry using a hack to implement a fire and forget
+     * from: http://stackoverflow.com/questions/962915/how-do-i-make-an-asynchronous-get-request-in-php
+     *
+     * @param string    $url        Full URL to Sentry
+     * @param array     $data       Associative array of data to log
+     * @param array     $headers    Associative array of headers
+     * @return bool
+     */
+
+     private function request_async_hack($url, $body, $headers)
+     {
+        try {
+            $post_string = $body;
+
+            $parts=parse_url($url);
+
+            $fp = fsockopen($parts['host'],
+               isset($parts['port'])?$parts['port']:80,
+               $errno, $errstr, 30);
+
+            // Data goes in the path for a GET request
+            $out = "POST ".$parts['path']." HTTP/1.1\r\n";
+            $out.= "Host: ".$parts['host']."\r\n";
+            $out.= "Content-Type: application/x-www-form-urlencoded\r\n";
+            $out.= "Content-Length: ".strlen($post_string)."\r\n";
+            foreach($headers as $key=>$value) {
+               $out .= "$key: $value\r\n";
+            }
+
+            $out.= "Connection: Close\r\n\r\n";
+
+            // Data goes in the request body for a POST request
+            $out.= $post_string;
+            fwrite($fp, $out);
+            fclose($fp);
+            return true;
+          } catch (Exception $ex) {
+            return false;
+          }
+      }
+
+    /**
      * Send the message over http to the sentry url given
      *
      * @param string $url       URL of the Sentry instance to log to
@@ -873,6 +915,8 @@ class Raven_Client
             $this->_curl_handler->enqueue($url, $data, $headers);
         } elseif ($this->curl_method == 'exec') {
             $this->send_http_asynchronous_curl_exec($url, $data, $headers);
+        } elseif ($this->curl_method == 'fd') {
+            $this->request_async_hack($url, $data, $headers);
         } else {
             $this->send_http_synchronous($url, $data, $headers);
         }
