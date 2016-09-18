@@ -838,7 +838,7 @@ class Raven_Client
     private function send_icicle($url, $data, $headers=array()) {
       $client = new Client();
 
-      $response = yield from $client->request('POST', $url, $data, $headers);
+      $response = yield from $client->request('POST', $url, $headers, $data);
     }
 
     /**
