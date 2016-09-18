@@ -14,6 +14,13 @@
  * @package raven
  */
 
+ use Icicle\Coroutine\Coroutine;
+ use Icicle\Http\Client\Client;
+ use Icicle\Http\Driver\Encoder\Http1Encoder;
+ use Icicle\Loop;
+ use Icicle\Socket;
+
+
 class Raven_Client
 {
     const VERSION = '1.2.0';
@@ -821,6 +828,20 @@ class Raven_Client
     }
 
     /**
+     * Send data to Sentry using Icicle Coroutine
+     *
+     * @param string    $url        Full URL to Sentry
+     * @param array     $data       Associative array of data to log
+     * @param array     $headers    Associative array of headers
+     * @return bool
+     */
+    private function send_icicle($url, $data, $headers=array()) {
+      $client = new Client();
+
+      $response = yield from $client->request('POST', $url, $data, $headers);
+    }
+
+    /**
      * Send the message over http to the sentry url given
      *
      * @param string $url       URL of the Sentry instance to log to
@@ -833,6 +854,9 @@ class Raven_Client
             $this->_curl_handler->enqueue($url, $data, $headers);
         } elseif ($this->curl_method == 'exec') {
             $this->send_http_asynchronous_curl_exec($url, $data, $headers);
+        } elseif ($this->curl_method == 'icicle') {
+            $callback = new Coroutine($this->send_icicle($url, $data, $headers));
+            Loop\run();
         } else {
             $this->send_http_synchronous($url, $data, $headers);
         }
