@@ -873,7 +873,7 @@ class Raven_Client
      * @return bool
      */
 
-     private function request_async_hack($url, $body, $headers)
+     private function request_async_sock($url, $body, $headers)
      {
         try {
             $post_string = $body;
@@ -918,16 +918,8 @@ class Raven_Client
             $this->_curl_handler->enqueue($url, $data, $headers);
         } elseif ($this->curl_method == 'exec') {
             $this->send_http_asynchronous_curl_exec($url, $data, $headers);
-        } elseif ($this->curl_method == 'fd') {
-            $this->request_async_hack($url, $data, $headers);
-        } elseif ($this->curl_method == 'react') {
-          $loop = React\EventLoop\Factory::create();
-          $browser = new Browser($loop);
-          $browser->post($url, $headers, $data)->then(function (ResponseInterface $response) {
-            var_dump($response->getHeaders(), (string)$response->getBody());
-          });
-          $loop->run();
-          var_dump("here");
+        } elseif ($this->curl_method == 'sock') {
+            $this->request_async_sock($url, $data, $headers);
         } else {
             $this->send_http_synchronous($url, $data, $headers);
         }

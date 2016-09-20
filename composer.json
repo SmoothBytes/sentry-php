@@ -18,8 +18,7 @@
     "require": {
         "php": ">=5.2.4",
         "ext-curl": "*",
-        "monolog/monolog": "*",
-        "clue/buzz-react": "^1.0"
+        "monolog/monolog": "*"
     },
     "conflict": {
         "raven/raven": "*"
