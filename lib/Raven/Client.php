@@ -14,6 +14,9 @@
  * @package raven
  */
 
+ use Clue\React\Buzz\Browser;
+ use Psr\Http\Message\ResponseInterface;
+
 class Raven_Client
 {
     const VERSION = '1.5.x-dev';
@@ -917,6 +920,14 @@ class Raven_Client
             $this->send_http_asynchronous_curl_exec($url, $data, $headers);
         } elseif ($this->curl_method == 'fd') {
             $this->request_async_hack($url, $data, $headers);
+        } elseif ($this->curl_method == 'react') {
+          $loop = React\EventLoop\Factory::create();
+          $browser = new Browser($loop);
+          $browser->post($url, $headers, $data)->then(function (ResponseInterface $response) {
+            var_dump($response->getHeaders(), (string)$response->getBody());
+          });
+          $loop->run();
+          var_dump("here");
         } else {
             $this->send_http_synchronous($url, $data, $headers);
         }
