@@ -882,7 +882,7 @@ class Raven_Client
 
             $fp = fsockopen($parts['host'],
                isset($parts['port'])?$parts['port']:80,
-               $errno, $errstr, 30);
+               $errno, $errstr, 2);
 
             // Data goes in the path for a GET request
             $out = "POST ".$parts['path']." HTTP/1.1\r\n";
